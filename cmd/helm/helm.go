@@ -13,15 +13,18 @@ import (
 )
 
 const (
-	homeEnvVar = "HELM_HOME"
 	hostEnvVar = "HELM_HOST"
+	homeEnvVar = "HELM_HOME"
+	homeEnvDef = "$HOME/.helm"
 )
 
-var helmHome string
-var tillerHost string
+var (
+	helmHome   string
+	tillerHost string
+	flagDebug  bool
+)
 
 // flagDebug is a signal that the user wants additional output.
-var flagDebug bool
 
 var globalUsage = `The Kubernetes package manager
 
@@ -55,7 +58,7 @@ var RootCommand = &cobra.Command{
 func init() {
 	home := os.Getenv(homeEnvVar)
 	if home == "" {
-		home = "$HOME/.helm"
+		home = homeEnvDef
 	}
 	thost := os.Getenv(hostEnvVar)
 	p := RootCommand.PersistentFlags()
