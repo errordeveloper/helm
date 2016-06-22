@@ -13,15 +13,18 @@ import (
 )
 
 const (
-	hostEnvVar = "HELM_HOST"
-	homeEnvVar = "HELM_HOME"
-	homeEnvDef = "$HOME/.helm"
+	hostEnvVar            = "HELM_HOST"
+	homeEnvVar            = "HELM_HOME"
+	homeEnvDef            = "$HOME/.helm"
+	tillerNamespaceEnvVar = "HELM_NAMESPACE"
+	tillerNamespaceEnvDef = "helm"
 )
 
 var (
-	helmHome   string
-	tillerHost string
-	flagDebug  bool
+	helmHome        string
+	tillerHost      string
+	tillerNamespace string
+	flagDebug       bool
 )
 
 // flagDebug is a signal that the user wants additional output.
@@ -45,6 +48,7 @@ Common actions from this point include:
 Environment:
   $HELM_HOME      Set an alternative location for Helm files. By default, these are stored in ~/.helm
   $HELM_HOST      Set an alternative Tiller host. The format is host:port (default ":44134").
+  $HELM_NAMESPACE Set an alternative Tiller namespace. The default is helm. This is ignored when $HELM_HOST or --host is set.
 `
 
 // RootCommand is the top-level command for Helm.
@@ -75,8 +79,12 @@ func main() {
 
 func setupConnection(c *cobra.Command, args []string) error {
 	if tillerHost == "" {
+		tillerNamespace := os.Getenv(tillerNamespaceEnvVar)
+		if tillerNamespace == "" {
+			tillerNamespace = tillerNamespaceEnvDef
+		}
 		// Should failure fall back to default host?
-		tunnel, err := newTillerPortForwarder()
+		tunnel, err := newTillerPortForwarder(tillerNamespace)
 		if err != nil {
 			return err
 		}
